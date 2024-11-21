@@ -5,7 +5,7 @@
 - Comprendre les jointures
 - Utiliser différents types de jointures
 
-## Challegenge
+## Challenge
 
 **Tournoi de quidditch**
 
