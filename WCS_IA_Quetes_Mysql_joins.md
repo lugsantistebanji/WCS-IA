@@ -25,7 +25,7 @@ CREATE TABLE wizard(
     PRIMARY KEY (id)
 );
 ```
-
+![](https://imgur.com/vOQXNoU.png)
 
 2. **Crée les tables player et team comme indiquées sur la modélisation ci-dessous (noms et types des champs), en prenant soin de déclarer correctement les clés étrangères.**
 
@@ -38,8 +38,11 @@ CREATE TABLE team(
     name VARCHAR(80) NOT NULL,
     PRIMARY KEY (id)
 );
+```
+![](https://imgur.com/u2O77zN.png)
 
 
+```SQL
 CREATE TABLE player(
     id INT NOT NULL AUTO_INCREMENT,
     wizard_id INT NOT NULL,
@@ -50,8 +53,9 @@ CREATE TABLE player(
     CONSTRAINT fk_player_wizard FOREIGN KEY (wizard_id) REFERENCES wizard(id),
     CONSTRAINT fk_player_team FOREIGN KEY (team_id) REFERENCES team(id)
 );
-
 ```
+![](https://imgur.com/p3yJjS5.png)
+
 
 3. Insère ensuite ces données dans ta BDD
 
@@ -101,7 +105,10 @@ Vérifie que tout s’est bien passé. Nous n'avons pas forcément respecté les
     ;
     ```
 
+    ![](https://imgur.com/7VHmB2j.png)
+
     - Retourne uniquement les prénoms et noms des joueurs ayant le rôle de seeker (attrapeur), classés par ordre alphabétique de nom puis prénom
+    
     ```SQL
     SELECT
         wizard.firstname AS firstname,
@@ -116,6 +123,9 @@ Vérifie que tout s’est bien passé. Nous n'avons pas forcément respecté les
         wizard.firstname
     ;
     ```
+    
+    ![](https://imgur.com/zQVEWkF.png)
+
     - Retourne la liste de tous les sorciers qui ne pratiquent pas le quidditch.
     ```SQL
     
@@ -147,3 +157,6 @@ Vérifie que tout s’est bien passé. Nous n'avons pas forcément respecté les
         firstname
     ;
     ```
+    
+    ![](https://imgur.com/pWGXDB1.png)
+
