@@ -1,4 +1,4 @@
-# Récupérer des informations avec SELECT
+# RÉCUPÉRER DES INFORMATIONS AVEC `SELECT`
 
 ## Objectifs
 - Connexion à la base de données, importation de données
