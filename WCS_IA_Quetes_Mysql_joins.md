@@ -57,7 +57,7 @@ CREATE TABLE player(
 ![](https://imgur.com/p3yJjS5.png)
 
 
-3. Insère ensuite ces données dans ta BDD
+3. **Insère ensuite ces données dans ta BDD**
 
 
 ```SQL
@@ -82,9 +82,9 @@ VALUES
 
 Vérifie que tout s’est bien passé. Nous n'avons pas forcément respecté les vrais rôles des joueurs dans les livres, vérifie juste que tes requêtes renvoient bien les informations stockées en base de données.
 
-4. Une fois ces données correctement chargées, écris les requêtes suivantes, et poste-les avec tes résultats en guise de solution :
+4. **Une fois ces données correctement chargées, écris les requêtes suivantes, et poste-les avec tes résultats en guise de solution :**
 
-    - Retourne les noms, prénoms, rôle et équipe de tous les joueurs, classés dans l’ordre alphabétique par équipe, puis par rôle dans l’équipe, puis par nom de famille, puis par prénom.
+    - *Retourne les noms, prénoms, rôle et équipe de tous les joueurs, classés dans l’ordre alphabétique par équipe, puis par rôle dans l’équipe, puis par nom de famille, puis par prénom.*
     
     ```SQL
     SELECT
@@ -107,7 +107,7 @@ Vérifie que tout s’est bien passé. Nous n'avons pas forcément respecté les
 
     ![](https://imgur.com/7VHmB2j.png)
 
-    - Retourne uniquement les prénoms et noms des joueurs ayant le rôle de seeker (attrapeur), classés par ordre alphabétique de nom puis prénom
+    - *Retourne uniquement les prénoms et noms des joueurs ayant le rôle de seeker (attrapeur), classés par ordre alphabétique de nom puis prénom*
     
     ```SQL
     SELECT
@@ -126,7 +126,7 @@ Vérifie que tout s’est bien passé. Nous n'avons pas forcément respecté les
     
     ![](https://imgur.com/zQVEWkF.png)
 
-    - Retourne la liste de tous les sorciers qui ne pratiquent pas le quidditch.
+    - *Retourne la liste de tous les sorciers qui ne pratiquent pas le quidditch.*
     ```SQL
     
     -- Using LEFT JOIN 
