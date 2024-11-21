@@ -43,7 +43,7 @@ UPDATE school
 SET capacity = 150 
 WHERE name = "Koldovstoretz";
 ```
-![](https://imgur.com/EgZ253G.png
+![](https://imgur.com/EgZ253G.png)
 
 
 4. **Supprime en une seule requête toutes les écoles comportant “Magic” dans leur nom (il y en a 3). Tu peux t’aider du mot clé LIKE.**
@@ -59,4 +59,4 @@ WHERE name LIKE "%Magic%";
 ```SQL
 SELECT * FROM school;
 ```
-![](https://imgur.com/HR84xOC.png
+![](https://imgur.com/HR84xOC.png)
