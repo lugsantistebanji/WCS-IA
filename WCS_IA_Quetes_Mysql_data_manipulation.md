@@ -45,7 +45,6 @@ WHERE name = "Koldovstoretz";
 ```
 ![](https://imgur.com/EgZ253G.png)
 
-
 4. **Supprime en une seule requête toutes les écoles comportant “Magic” dans leur nom (il y en a 3). Tu peux t’aider du mot clé LIKE.**
 ```SQL
 DELETE FROM school
