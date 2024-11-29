@@ -33,7 +33,7 @@ Tu vas devoir faire appel à ton esprit d'analyse, afin de réaliser 4 graphique
 
 ### Relation Chart
 
-**Show the relation between the `Sales Amount` and the `Cost Amount` 
+**Show the relation between the `Sales Amount` and the `Cost Amount`** 
 
 
 ![](https://imgur.com/UXiREOW.png)
