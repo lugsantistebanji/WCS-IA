@@ -7,7 +7,7 @@ We cannot know if an order is paid or not.
 
 ## Ventes
 
-- Le nombre de produits vendus par catégorie et par mois, avec comparaison et taux d'évolution par rapport au même mois de l'année précédente.
+- **Le nombre de produits vendus par catégorie et par mois, avec comparaison et taux d'évolution par rapport au même mois de l'année précédente.**
 
     Note: Taux des produits existentes l'année précédente.
 ```sql
@@ -179,36 +179,6 @@ WHERE
 GROUP BY
 	offices.country
 ; 
-```
-
-
-
-
-- Country - Customer
-    Note : Opening a new office ?
-```sql
--- COUNTRY - CUSTOMERS
-SELECT 
-	customers.country AS country,
-	SUM(orderdetails.quantityOrdered * orderdetails.priceEach) AS last_two_monthly_profits
-FROM customers
-INNER JOIN orders
-	ON
-		customers.customerNumber = orders.customerNumber
-INNER JOIN orderdetails
-	ON
-		orders.orderNumber = orderdetails.orderNumber
-WHERE
-	/*orders.orderDate >= DATE_FORMAT(date_add(DATE_FORMAT(NOW(), '%Y-%m-01'), interval -2 month), "%Y-%m-01")
-    AND 
-    orders.orderDate < DATE_FORMAT(NOW(), '%Y-%m-01')
-    AND*/ 
-    orders.status <> 'Cancelled'
-GROUP BY
-	customers.country
-ORDER BY
-	customers.country
-;
 ```
 
 - **CA par pays derniers 12 months**
