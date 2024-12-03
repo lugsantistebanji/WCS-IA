@@ -94,8 +94,53 @@ WHERE
 ;
 ```
 
-- **Ventes par pays
+- **Ventes - Cantité des produtis -  par pays par années**
 
+```sql
+SELECT 
+	YEAR(ord.orderDate) AS year_n, 
+    offices.country AS country,
+	SUM(od.quantityOrdered) AS quantity
+FROM offices
+	INNER JOIN employees as emp
+			ON offices.officeCode = emp.officeCode
+    INNER JOIN customers as cust
+			ON emp.employeeNumber = cust.salesRepEmployeeNumber
+	INNER JOIN orders as ord
+			ON cust.customerNumber = ord.customerNumber
+	INNER JOIN orderdetails AS od
+		ON ord.orderNumber = od.orderNumber
+GROUP BY 
+	year_n, 
+    country
+ORDER BY
+	country
+; 
+
+```
+
+- **Ventes - Cantité des orders -  par pays par années**
+
+```sql
+SELECT 
+	YEAR(ord.orderDate) AS year_n, 
+    offices.country AS country,
+	COUNT(ord.orderNumber) AS nb_orders
+FROM offices
+	INNER JOIN employees as emp
+			ON offices.officeCode = emp.officeCode
+    INNER JOIN customers as cust
+			ON emp.employeeNumber = cust.salesRepEmployeeNumber
+	INNER JOIN orders as ord
+			ON cust.customerNumber = ord.customerNumber
+GROUP BY 
+	year_n, 
+    country
+ORDER BY
+	country
+; 
+
+```
 
 
 ## Finances 
@@ -167,8 +212,30 @@ ORDER BY
 ```
 
 - **CA par pays derniers 12 months**
-
-
+```sql
+-- ---------------------------------- Ventes par pays par années
+SELECT 
+	YEAR(ord.orderDate) AS year_n, 
+    offices.country AS country,
+	SUM(od.quantityOrdered) AS quantity
+FROM offices
+	INNER JOIN employees as emp
+			ON offices.officeCode = emp.officeCode
+    INNER JOIN customers as cust
+			ON emp.employeeNumber = cust.salesRepEmployeeNumber
+	INNER JOIN orders as ord
+			ON cust.customerNumber = ord.customerNumber
+	INNER JOIN orderdetails AS od
+		ON ord.orderNumber = od.orderNumber
+	INNER JOIN products as pd			
+		ON od.productCode = pd.productCode
+GROUP BY 
+	year_n, 
+    country
+ORDER BY
+	country
+;
+```
 
 
 - **Total impayée par office mois**
@@ -207,36 +274,129 @@ LIMIT 5
 
 ```sql
 WITH sellers_data AS (
-SELECT 
-	CONCAT(employees.lastName," ", employees.firstName) AS seller,
-    YEAR(orders.orderDate) AS year,
-    MONTH(orders.orderDate) AS month,
-    SUM(orderdetails.quantityOrdered * orderdetails.priceEach)AS total,
-	RANK() OVER(
-			PARTITION BY
-				YEAR(orders.orderDate),
-                MONTH(orders.orderDate)
-			ORDER BY
-				SUM(orderdetails.quantityOrdered * orderdetails.priceEach) DESC
-            ) as ranking
-FROM employees
-JOIN customers
-	ON employees.employeeNumber = customers.salesRepEmployeeNumber
-JOIN orders
-	ON customers.customerNumber = orders.customerNumber
-JOIN orderdetails
-	ON orders.orderNumber = orderdetails.orderNumber
-WHERE
-	employees.jobTitle = "Sales Rep"
-GROUP BY
-	YEAR(orders.orderDate),
-    MONTH(orders.orderDate),
-	employees.employeeNumber
+-- all sales amount of every employee every month 
+	SELECT 
+		YEAR(orders.orderDate) AS year,
+		MONTH(orders.orderDate) AS month,
+        CONCAT(employees.lastName," ", employees.firstName) AS seller,
+		SUM(orderdetails.quantityOrdered * orderdetails.priceEach)AS total,
+		RANK() OVER(
+				PARTITION BY
+					YEAR(orders.orderDate),
+					MONTH(orders.orderDate)
+				ORDER BY
+					SUM(orderdetails.quantityOrdered * orderdetails.priceEach) DESC
+				) as ranking
+	FROM employees
+	JOIN customers
+		ON employees.employeeNumber = customers.salesRepEmployeeNumber
+	JOIN orders
+		ON customers.customerNumber = orders.customerNumber
+	JOIN orderdetails
+		ON orders.orderNumber = orderdetails.orderNumber
+	WHERE
+		employees.jobTitle = "Sales Rep"
+	GROUP BY
+		YEAR(orders.orderDate),
+		MONTH(orders.orderDate),
+		employees.employeeNumber
 )
+-- The two best sellers for month 
 SELECT 
-	seller,
     year,
     month,
+    seller,
+    ranking
+FROM sellers_data
+WHERE ranking <= 2
+ORDER BY
+	year,
+    month,
+    ranking DESC
+;
+```
+
+- ** Chaque mois, les vendeurs avel le CA le moins élevé.**
+
+```sql
+-- ------------------------ TWO WORST CA-SELLERS BY MONTH 
+WITH sellers_data AS (
+-- all sales amount of every employee every month 
+	SELECT 
+		CONCAT(employees.lastName," ", employees.firstName) AS seller,
+		YEAR(orders.orderDate) AS year,
+		MONTH(orders.orderDate) AS month,
+		SUM(orderdetails.quantityOrdered * orderdetails.priceEach) AS total,
+		RANK() OVER(
+				PARTITION BY
+					YEAR(orders.orderDate),
+					MONTH(orders.orderDate)
+				ORDER BY
+					SUM(orderdetails.quantityOrdered * orderdetails.priceEach) ASC
+				) as ranking
+	FROM employees
+	JOIN customers
+		ON employees.employeeNumber = customers.salesRepEmployeeNumber
+	JOIN orders
+		ON customers.customerNumber = orders.customerNumber
+	JOIN orderdetails
+		ON orders.orderNumber = orderdetails.orderNumber
+	WHERE
+		employees.jobTitle = "Sales Rep"
+	GROUP BY
+		YEAR(orders.orderDate),
+		MONTH(orders.orderDate),
+		employees.employeeNumber
+)
+-- The two worst sellers for month 
+SELECT 
+    year,
+    month,
+    seller,
+    ranking
+FROM sellers_data
+WHERE ranking <= 2
+ORDER BY
+	year,
+    month,
+	ranking
+;
+```
+
+- **Les vendeurs avec plus des orders.**
+
+```sql
+WITH sellers_data AS (
+-- all sales amount of every employee every month 
+	SELECT 
+		YEAR(orders.orderDate) AS year,
+		MONTH(orders.orderDate) AS month,
+		CONCAT(employees.lastName," ", employees.firstName) AS seller,
+		COUNT(orders.orderNumber) AS total,
+		RANK() OVER(
+				PARTITION BY
+					YEAR(orders.orderDate),
+					MONTH(orders.orderDate)
+				ORDER BY
+					COUNT(orders.orderNumber) DESC
+				) as ranking
+	FROM employees
+	JOIN customers
+		ON employees.employeeNumber = customers.salesRepEmployeeNumber
+	JOIN orders
+		ON customers.customerNumber = orders.customerNumber
+	WHERE
+		employees.jobTitle = "Sales Rep"
+	GROUP BY
+		YEAR(orders.orderDate),
+		MONTH(orders.orderDate),
+		employees.employeeNumber
+)
+-- The two best sellers for month 
+SELECT 
+    year,
+    month,
+    seller,
     ranking
 FROM sellers_data
 WHERE ranking <= 2
@@ -245,12 +405,52 @@ ORDER BY
     month,
     total DESC
 ;
+```
 
+- **Les deux vendeux avec le moins de orders par mois 
+```sql
+-- ------------------------ TWO WORST QTE-ORDERS-SELLERS BY MONTH 
+WITH sellers_data AS (
+-- all sales amount of every employee every month 
+	SELECT 
+		YEAR(orders.orderDate) AS year,
+		MONTH(orders.orderDate) AS month,
+		CONCAT(employees.lastName," ", employees.firstName) AS seller,
+		COUNT(orders.orderNumber) AS total,
+		RANK() OVER(
+				PARTITION BY
+					YEAR(orders.orderDate),
+					MONTH(orders.orderDate)
+				ORDER BY
+					COUNT(orders.orderNumber) ASC
+				) as ranking
+	FROM employees
+	JOIN customers
+		ON employees.employeeNumber = customers.salesRepEmployeeNumber
+	JOIN orders
+		ON customers.customerNumber = orders.customerNumber
+	WHERE
+		employees.jobTitle = "Sales Rep"
+	GROUP BY
+		YEAR(orders.orderDate),
+		MONTH(orders.orderDate),
+		employees.employeeNumber
+)
+-- The two worst sellers for month 
+SELECT 
+    year,
+    month,
+    seller,
+    ranking
+FROM sellers_data
+WHERE ranking <= 2
+ORDER BY
+	year,
+    month,
+    ranking DESC
+;
 
 ```
 
 
 
-- ** Chaque mois, les vendeurs avel le CA le moins élevé.**
-- ** ... le plus de produits/orders vendus
-- ** ... le moins de produits/orders vendus 
