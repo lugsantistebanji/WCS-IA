@@ -1,4 +1,4 @@
-# MODEL COMPANY
+ MODEL COMPANY
 
 ## Commentaires
 
@@ -25,7 +25,7 @@ WITH all_data AS (
 		SELECT DISTINCT YEAR(orders.orderDate) AS year FROM orders
 	),
 	categories AS (
-		SELECT DISTINCT productlines.productLine AS category FROM productlines
+		SELECT productlines.productLine AS category FROM productlines
 	),
 	min_date AS (
 	SELECT 
@@ -94,7 +94,7 @@ WHERE
 ;
 ```
 
-
+- **Ventes par pays
 
 
 
@@ -105,7 +105,7 @@ de données par pays. Deux derniers mois à partir du premier jour du mois en co
 
     Note: Pas de TVA donc payment = qte * price
 
-- Country - Office 
+- CA Country - Office  - Last Two months
 ```sql
 
 -- COUNTRY - OFFICE
@@ -165,7 +165,20 @@ ORDER BY
 	customers.country
 ;
 ```
-## Logistique: Le stock des 5 produits les plus commandés.
+
+- **CA par pays derniers 12 months**
+
+
+
+
+- **Total impayée par office mois**
+
+- **Calcul customer - orders - payments**
+
+
+## Logistique: 
+
+- **Le stock des 5 produits les plus commandés.**
 
 ```sql
 -- 5 PRODUITS PLUS COMMANDES
@@ -185,7 +198,11 @@ LIMIT 5
 ;
 ```
 
-## Ressources humaines: Chaque mois, les 2 vendeurs avec le CA le plus élevé.
+- **Alert of products with low stock** 
+
+## Ressources humaines: 
+
+- **Chaque mois, les 2 vendeurs avec le CA le plus élevé.**
 
 
 ```sql
@@ -231,3 +248,9 @@ ORDER BY
 
 
 ```
+
+
+
+- ** Chaque mois, les vendeurs avel le CA le moins élevé.**
+- ** ... le plus de produits/orders vendus
+- ** ... le moins de produits/orders vendus 
