@@ -94,7 +94,7 @@ WHERE
 ;
 ```
 
-- **Ventes - Cantité des produtis -  par pays par années**
+- **Ventes - Quantité des produtis -  par pays par années**
 
 ```sql
 SELECT 
@@ -119,7 +119,7 @@ ORDER BY
 
 ```
 
-- **Ventes - Cantité des orders -  par pays par années**
+- **Ventes - Quantité des orders -  par pays par années**
 
 ```sql
 SELECT 
