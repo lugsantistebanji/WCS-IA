@@ -616,5 +616,46 @@ ORDER BY
 
 ```
 
+- ** The two profits best sellers of the last month
+```sql
+WITH sellers_data AS (
+	WITH max_date AS (
+		SELECT MAX(orders.orderDate) AS max_date FROM orders
+	)
+-- all sales amount of every employee every month 
+	SELECT 
+        CONCAT(employees.lastName," ", employees.firstName) AS seller,
+		SUM(orderdetails.quantityOrdered * orderdetails.priceEach)AS total,
+		RANK() OVER(
+				ORDER BY
+					SUM(orderdetails.quantityOrdered * orderdetails.priceEach) DESC
+				) as ranking
+	FROM employees
+	JOIN customers
+		ON employees.employeeNumber = customers.salesRepEmployeeNumber
+	JOIN orders
+		ON customers.customerNumber = orders.customerNumber
+	JOIN orderdetails
+		ON orders.orderNumber = orderdetails.orderNumber,
+	max_date
+	WHERE
+		employees.jobTitle = "Sales Rep"
+        AND
+        orders.orderDate >= DATE_FORMAT(date_add(DATE_FORMAT(max_date.max_date, '%Y-%m-01'), interval -1 month), "%Y-%m-01")
+        AND
+        orders.orderDate < DATE_FORMAT(max_date.max_date, '%Y-%m-01')
+	GROUP BY
+		employees.employeeNumber
+)
+SELECT 
+    seller,
+    ranking
+FROM sellers_data
+WHERE ranking <= 2
+ORDER BY
+    ranking ASC
+;
+```
+
 
 
