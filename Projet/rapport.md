@@ -209,6 +209,150 @@ ORDER BY
 
 
 - **Total impayée par office mois**
+```sql
+-- --------------------------------------TOTAL (PAYMENTS - CA SALES) PAR OFFICE PAR ANNÉE
+
+WITH data AS (
+	WITH months AS(
+			WITH RECURSIVE months_r AS(
+				SELECT 1 AS month
+				UNION ALL
+				SELECT month + 1 FROM months_r WHERE month < 12
+			) 
+				SELECT month FROM months_r
+		),
+		-- All years in orders
+		years AS(
+			SELECT DISTINCT YEAR(orders.orderDate) AS year FROM orders
+		),
+		-- year and month of min date
+		bound_dates AS(
+			SELECT 
+				YEAR(MIN(orders.orderDate)) AS min_year,
+				MONTH(MIN(orders.orderDate)) AS min_month,
+                YEAR(MAX(orders.orderDate)) AS max_year,
+				MONTH(MAX(orders.orderDate)) AS max_month
+			FROM
+				orders			
+		),        
+		-- all sales amounts for office
+		total_sales AS(
+			SELECT 
+				YEAR(ord.orderDate) AS year_n, 
+				MONTH(ord.orderDate) AS month_n,
+				offices.officeCode AS office,
+				SUM(od.quantityOrdered * od.priceEach) AS total_sales
+			FROM offices
+				INNER JOIN employees AS emp
+					ON offices.officeCode = emp.officeCode
+				INNER JOIN customers AS cust
+					ON cust.salesRepEmployeeNumber = emp.employeeNumber
+				INNER JOIN orders AS ord
+					ON ord.customerNumber = cust.customerNumber
+				INNER JOIN orderdetails AS od
+					ON ord.orderNumber = od.orderNumber
+				INNER JOIN products as pd			
+					ON od.productCode = pd.productCode
+			WHERE
+				ord.status <> "Cancelled"
+			GROUP BY 
+				year_n, 
+				month_n, 
+				office 
+		),
+        -- all payments by office
+		total_payments AS(
+			SELECT 
+				YEAR(pay.paymentDate) AS year_n, 
+				MONTH(pay.paymentDate) AS month_n,
+				offices.officeCode AS office,
+				SUM(pay.amount) AS total_payments
+			FROM offices
+				INNER JOIN employees AS emp
+					ON offices.officeCode = emp.officeCode
+				INNER JOIN customers AS cust
+					ON cust.salesRepEmployeeNumber = emp.employeeNumber
+				INNER JOIN payments AS pay
+					ON pay.customerNumber = cust.customerNumber
+			GROUP BY 
+				year_n, 
+				month_n, 
+				office 
+			ORDER BY
+				year_n,
+				month_n,
+				office
+	)
+	SELECT 
+		year,
+		month,
+		offices.officeCode AS office,
+		COALESCE(ts.total_sales, 0) AS total_sales,
+		COALESCE(tp.total_payments, 0) AS total_payments,
+		(COALESCE(tp.total_payments, 0) - COALESCE(total_sales, 0)) AS total_unpayments
+	FROM years
+		LEFT JOIN months ON TRUE
+		LEFT JOIN offices ON TRUE
+		LEFT JOIN total_sales AS ts
+			ON year = ts.year_n
+			AND month = ts.month_n
+			AND offices.officeCode = ts.office
+		LEFT JOIN total_payments AS tp
+			ON year = tp.year_n
+			AND month = tp.month_n
+			AND offices.officeCode = tp.office
+		,
+		bound_dates AS bdate
+	WHERE 
+		(	year <= bdate.max_year AND NOT(
+			year = bdate.max_year AND month > bdate.max_month)
+		) AND
+		(	
+			year >= bdate.min_year  AND NOT(
+			year = bdate.min_year AND month < bdate.min_month )
+		)
+)
+SELECT 
+	year,
+    month,
+    office,
+	total_sales,
+    SUM(total_sales) OVER(
+						PARTITION BY 
+							office
+						ORDER BY 
+							year ASC, 
+                            month ASC 
+						)
+                        AS acumulate_sales,
+    total_payments,
+    SUM(total_payments) OVER(
+							PARTITION BY 
+								office 
+							ORDER BY
+								year ASC, 
+                                month ASC 
+							)
+                            AS acumulate_payments,
+    total_unpayments,
+    SUM(total_unpayments) OVER(
+						PARTITION BY 
+							office
+						ORDER BY 
+							year ASC, 
+                            month ASC
+						)
+						AS acumulate_unpayments
+    
+FROM data
+ORDER BY
+	office,
+    year,
+    month
+;
+
+```
+
 
 - **Calcul customer - orders - payments**
 
@@ -236,6 +380,36 @@ LIMIT 5
 ```
 
 - **Alert of products with low stock** 
+
+```sql
+-- -------------------- ALERTS STOCK
+WITH max_date AS (
+	SELECT MAX(orders.orderDate) AS max_date FROM orders
+)
+SELECT 
+	products.productName AS productName,
+    products.quantityInStock AS stock,
+    SUM(orderdetails.quantityOrdered)/12 AS avg_qte
+FROM orders
+INNER JOIN orderdetails
+	ON orders.orderNumber = orderdetails.orderNumber
+INNER JOIN products
+	ON 
+		products.productCode = orderdetails.productCode,
+	max_date
+WHERE
+	orders.orderDate >= date_add(max_date.max_date, interval -12 month)
+GROUP BY
+	products.productCode
+HAVING
+	stock < avg_qte
+ORDER BY
+    stock ASC,
+    productName
+;
+```
+
+
 
 ## Ressources humaines: 
 
