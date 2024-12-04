@@ -12,7 +12,7 @@ We cannot know if an order is paid or not.
     Note: Taux des produits existentes l'année précédente.
 ```sql
 WITH all_data AS (
-
+	-- All number months
 	WITH months AS(
 		WITH RECURSIVE months_r AS(
 			SELECT 1 AS month
@@ -21,19 +21,25 @@ WITH all_data AS (
 		) 
 			SELECT month FROM months_r
 	),
+    -- All years in orders
 	years AS(
 		SELECT DISTINCT YEAR(orders.orderDate) AS year FROM orders
 	),
+    -- All product categories
 	categories AS (
 		SELECT productlines.productLine AS category FROM productlines
 	),
-	min_date AS (
+    -- year and month of min date
+	bound_dates AS (
 	SELECT 
 		YEAR(MIN(orders.orderDate)) AS min_year,
-		MONTH(MIN(orders.orderDate)) AS min_month
+		MONTH(MIN(orders.orderDate)) AS min_month,
+        YEAR(MAX(orders.orderDate)) AS max_year,
+		MONTH(MAX(orders.orderDate)) AS max_month
 	FROM
 		orders
 	),
+    -- all sales amounts for month and category
 	totals AS(
 		SELECT 
 			YEAR(ord.orderDate) AS year_n, 
@@ -47,6 +53,7 @@ WITH all_data AS (
 				ON od.productCode = pd.productCode
 		GROUP BY year_n, month_n, category_n 
 	)
+    -- total sales of current and last year
 	SELECT 
 		year,
 		month,
@@ -72,25 +79,33 @@ WITH all_data AS (
 			AND month = month_n
 			AND category = category_n
 		,
-		min_date
+		bound_dates
 	WHERE 
-		(	year <= YEAR(NOW()) AND NOT(
-			year = YEAR (NOW()) AND month >= MONTH(NOW()))
+		(	year <= bound_dates.max_year AND NOT(
+			year = bound_dates.max_year AND month > bound_dates.max_month)
 		) AND
 		(	
-			year >= min_date.min_year  AND NOT(
-			year = min_date.min_year AND month < min_date.min_month )
+			year >= bound_dates.min_year  AND NOT(
+			year = bound_dates.min_year AND month < bound_dates.min_month )
 		)
+        
 )
-SELECT 
-	*
-     ,(quantity - last_year_quantity)*100/last_year_quantity AS evolution_rate
+-- Rate evolution
+SELECT
+	STR_TO_DATE(CONCAT(year," ",month," ","01"), "%Y %m %d") AS date,
+    category,
+    quantity,
+    last_year_quantity,
+	(quantity - last_year_quantity)*100/last_year_quantity AS rate     
 FROM all_data
 WHERE
-	
 	 last_year_quantity <> -1
      AND 
      last_year_quantity <> 0
+ORDER BY
+	year DESC,
+    month DESC,
+    category 
 ;
 ```
 
