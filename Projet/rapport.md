@@ -154,6 +154,9 @@ de données par pays. Deux derniers mois à partir du premier jour du mois en co
 ```sql
 
 -- COUNTRY - OFFICE
+WITH max_date AS (
+	SELECT MAX(orders.orderDate) AS max_date FROM orders
+)
 SELECT 
 	offices.country AS country,
 	SUM(orderdetails.quantityOrdered * orderdetails.priceEach) AS last_two_monthly_profits
@@ -169,42 +172,41 @@ INNER JOIN orders
 		customers.customerNumber = orders.customerNumber
 INNER JOIN orderdetails
 	ON
-		orders.orderNumber = orderdetails.orderNumber
+		orders.orderNumber = orderdetails.orderNumber,
+	max_date
 WHERE
-	orders.orderDate >= DATE_FORMAT(date_add(DATE_FORMAT(NOW(), '%Y-%m-01'), interval -2 month), "%Y-%m-01")
+	orders.orderDate >= DATE_FORMAT(date_add(DATE_FORMAT(max_date.max_date, '%Y-%m-01'), interval -2 month), "%Y-%m-01")
     AND 
-    orders.orderDate < DATE_FORMAT(NOW(), '%Y-%m-01')
+    orders.orderDate < DATE_FORMAT(max_date.max_date, '%Y-%m-01')
     AND 
     orders.status <> 'Cancelled'
 GROUP BY
 	offices.country
-; 
+;
 ```
 
 - **CA par pays derniers 12 months**
 ```sql
 -- ---------------------------------- Ventes par pays par années
-SELECT 
-	YEAR(ord.orderDate) AS year_n, 
-    offices.country AS country,
-	SUM(od.quantityOrdered) AS quantity
-FROM offices
-	INNER JOIN employees as emp
-			ON offices.officeCode = emp.officeCode
-    INNER JOIN customers as cust
-			ON emp.employeeNumber = cust.salesRepEmployeeNumber
-	INNER JOIN orders as ord
-			ON cust.customerNumber = ord.customerNumber
-	INNER JOIN orderdetails AS od
-		ON ord.orderNumber = od.orderNumber
-	INNER JOIN products as pd			
-		ON od.productCode = pd.productCode
+WITH max_date AS (
+	SELECT MAX(orders.orderDate) AS max_date FROM orders
+)
+SELECT
+	offices.country as Country,
+	sum(o_d.priceEach*o_d.quantityOrdered) as ca_per_country
+FROM employees e
+	JOIN customers c ON c.salesRepEmployeeNumber = e.employeeNumber
+	JOIN orders o ON o.customerNumber = c.customerNumber
+	JOIN orderdetails o_d ON o_d.orderNumber = o.orderNumber
+	JOIN offices ON offices.officeCode  = e.officeCode,
+    max_date
+WHERE 
+	o.orderDate >= date_add(max_date.max_date, interval -12 month)
 GROUP BY 
-	year_n, 
-    country
-ORDER BY
-	country
-;
+	Country
+ORDER BY 
+	ca_per_country DESC;
+
 ```
 
 
