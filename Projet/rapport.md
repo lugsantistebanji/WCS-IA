@@ -208,7 +208,29 @@ ORDER BY
 	ca_per_country DESC;
 
 ```
-
+- **CA by country by year**
+```sql
+-- CA - COUNTRY - BY YEAR 
+WITH max_date AS (
+	SELECT MAX(orders.orderDate) AS max_date FROM orders
+)
+SELECT
+	YEAR(o.orderDate) AS year,
+    offices.country as Country,
+	sum(o_d.priceEach*o_d.quantityOrdered) as ca_per_country
+FROM employees e
+	JOIN customers c ON c.salesRepEmployeeNumber = e.employeeNumber
+	JOIN orders o ON o.customerNumber = c.customerNumber
+	JOIN orderdetails o_d ON o_d.orderNumber = o.orderNumber
+	JOIN offices ON offices.officeCode  = e.officeCode,
+    max_date
+GROUP BY 
+	year,
+	Country
+ORDER BY
+	year,
+	ca_per_country DESC;
+```
 
 - **Total impayée par office mois**
 ```sql
