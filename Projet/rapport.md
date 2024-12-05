@@ -5,12 +5,8 @@
 
 ## Ventes
 
-### QUESTION  
+### **The number of products sold by category and by month, with comparison and rate of change compared to the same month of the previous year.**
 
-**The number of products sold by category and by month, with comparison and rate of change compared to the same month of the previous year.**
-
-
-### SQL QUERY
 
 ```sql
 WITH all_data AS (
@@ -112,7 +108,7 @@ ORDER BY
 ```
 
 
-- **Quantity of products ordered by country and by year**
+### **Quantity of products ordered by country and by year**
 
 ```sql
 SELECT 
@@ -137,12 +133,9 @@ ORDER BY
 
 ```
 
-### QUESTION:
-
-**Number of orders by year and by country**
+### **Number of orders by year and by country**
 
 
-### QUERY:
 ```sql
 SELECT 
 	YEAR(ord.orderDate) AS year_n, 
@@ -168,10 +161,10 @@ ORDER BY
 
 ## Finances 
 
-### QUESTION:
- **The turnover from orders of the last two months in the database by country. The last two months starting from the first day of the current month.**
+### **The turnover from orders of the last two months in the database by country. The last two months starting from the first day of the current month.**
 
-### QUERY
+
+
 ```sql
 
 -- COUNTRY - OFFICE
