@@ -1,15 +1,17 @@
- MODEL COMPANY
+# TOYS AND MODELS COMPANY
 
-## Commentaires
 
-We cannot know if an order is paid or not. 
-
+---
 
 ## Ventes
 
-- **Le nombre de produits vendus par catégorie et par mois, avec comparaison et taux d'évolution par rapport au même mois de l'année précédente.**
+### QUESTION  
 
-    Note: Taux des produits existentes l'année précédente.
+**The number of products sold by category and by month, with comparison and rate of change compared to the same month of the previous year.**
+
+
+### SQL QUERY
+
 ```sql
 WITH all_data AS (
 	-- All number months
@@ -109,7 +111,8 @@ ORDER BY
 ;
 ```
 
-- **Ventes - Quantité des produtis -  par pays par années**
+
+- **Quantity of products ordered by country and by year**
 
 ```sql
 SELECT 
@@ -134,8 +137,12 @@ ORDER BY
 
 ```
 
-- **Ventes - Quantité des orders -  par pays par années**
+### QUESTION:
 
+**Number of orders by year and by country**
+
+
+### QUERY:
 ```sql
 SELECT 
 	YEAR(ord.orderDate) AS year_n, 
@@ -157,15 +164,14 @@ ORDER BY
 
 ```
 
+---
 
 ## Finances 
 
-Le chiffre d'affaires des commandes des deux derniers mois de la base
-de données par pays. Deux derniers mois à partir du premier jour du mois en cours.
+### QUESTION:
+ **The turnover from orders of the last two months in the database by country. The last two months starting from the first day of the current month.**
 
-    Note: Pas de TVA donc payment = qte * price
-
-- CA Country - Office  - Last Two months
+### QUERY
 ```sql
 
 -- COUNTRY - OFFICE
@@ -200,7 +206,9 @@ GROUP BY
 ;
 ```
 
-- **CA par pays derniers 12 months**
+### **The turnover from orders of the last twelve months in the database by country.**
+
+
 ```sql
 -- ---------------------------------- Ventes par pays par années
 WITH max_date AS (
@@ -223,7 +231,12 @@ ORDER BY
 	ca_per_country DESC;
 
 ```
-- **CA by country by year**
+
+
+
+### **Turnoaver by year and by country**
+
+
 ```sql
 -- CA - COUNTRY - BY YEAR 
 SELECT
@@ -243,7 +256,11 @@ ORDER BY
 	ca_per_country DESC;
 ```
 
-- **Total impayée par office mois**
+
+
+### **Subtraction between the total paid and the total sold**
+
+
 ```sql
 -- --------------------------------------TOTAL (PAYMENTS - CA SALES) PAR OFFICE PAR ANNÉE
 
@@ -388,13 +405,11 @@ ORDER BY
 
 ```
 
-
-- **Calcul customer - orders - payments**
-
+---
 
 ## Logistique: 
 
-- **Le stock des 5 produits les plus commandés.**
+### **Stock of the five most ordered products.**
 
 ```sql
 -- 5 PRODUITS PLUS COMMANDES
@@ -414,7 +429,7 @@ LIMIT 5
 ;
 ```
 
-- **Alert of products with low stock** 
+### **Stock of products with low stock** 
 
 ```sql
 -- -------------------- ALERTS STOCK
@@ -444,11 +459,11 @@ ORDER BY
 ;
 ```
 
+---
 
+## Human Resources: 
 
-## Ressources humaines: 
-
-- **Chaque mois, les 2 vendeurs avec le CA le plus élevé.**
+### **For each month, the two sellers with the highest turnover.**
 
 
 ```sql
@@ -495,143 +510,9 @@ ORDER BY
 ;
 ```
 
-- ** Chaque mois, les vendeurs avel le CA le moins élevé.**
 
-```sql
--- ------------------------ TWO WORST CA-SELLERS BY MONTH 
-WITH sellers_data AS (
--- all sales amount of every employee every month 
-	SELECT 
-		CONCAT(employees.lastName," ", employees.firstName) AS seller,
-		YEAR(orders.orderDate) AS year,
-		MONTH(orders.orderDate) AS month,
-		SUM(orderdetails.quantityOrdered * orderdetails.priceEach) AS total,
-		RANK() OVER(
-				PARTITION BY
-					YEAR(orders.orderDate),
-					MONTH(orders.orderDate)
-				ORDER BY
-					SUM(orderdetails.quantityOrdered * orderdetails.priceEach) ASC
-				) as ranking
-	FROM employees
-	JOIN customers
-		ON employees.employeeNumber = customers.salesRepEmployeeNumber
-	JOIN orders
-		ON customers.customerNumber = orders.customerNumber
-	JOIN orderdetails
-		ON orders.orderNumber = orderdetails.orderNumber
-	WHERE
-		employees.jobTitle = "Sales Rep"
-	GROUP BY
-		YEAR(orders.orderDate),
-		MONTH(orders.orderDate),
-		employees.employeeNumber
-)
--- The two worst sellers for month 
-SELECT 
-    year,
-    month,
-    seller,
-    ranking
-FROM sellers_data
-WHERE ranking <= 2
-ORDER BY
-	year,
-    month,
-	ranking
-;
-```
+### **The two sellers with the highest turnover of the last month.
 
-- **Les vendeurs avec plus des orders.**
-
-```sql
-WITH sellers_data AS (
--- all sales amount of every employee every month 
-	SELECT 
-		YEAR(orders.orderDate) AS year,
-		MONTH(orders.orderDate) AS month,
-		CONCAT(employees.lastName," ", employees.firstName) AS seller,
-		COUNT(orders.orderNumber) AS total,
-		RANK() OVER(
-				PARTITION BY
-					YEAR(orders.orderDate),
-					MONTH(orders.orderDate)
-				ORDER BY
-					COUNT(orders.orderNumber) DESC
-				) as ranking
-	FROM employees
-	JOIN customers
-		ON employees.employeeNumber = customers.salesRepEmployeeNumber
-	JOIN orders
-		ON customers.customerNumber = orders.customerNumber
-	WHERE
-		employees.jobTitle = "Sales Rep"
-	GROUP BY
-		YEAR(orders.orderDate),
-		MONTH(orders.orderDate),
-		employees.employeeNumber
-)
--- The two best sellers for month 
-SELECT 
-    year,
-    month,
-    seller,
-    ranking
-FROM sellers_data
-WHERE ranking <= 2
-ORDER BY
-	year,
-    month,
-    total DESC
-;
-```
-
-- **Les deux vendeux avec le moins de orders par mois 
-```sql
--- ------------------------ TWO WORST QTE-ORDERS-SELLERS BY MONTH 
-WITH sellers_data AS (
--- all sales amount of every employee every month 
-	SELECT 
-		YEAR(orders.orderDate) AS year,
-		MONTH(orders.orderDate) AS month,
-		CONCAT(employees.lastName," ", employees.firstName) AS seller,
-		COUNT(orders.orderNumber) AS total,
-		RANK() OVER(
-				PARTITION BY
-					YEAR(orders.orderDate),
-					MONTH(orders.orderDate)
-				ORDER BY
-					COUNT(orders.orderNumber) ASC
-				) as ranking
-	FROM employees
-	JOIN customers
-		ON employees.employeeNumber = customers.salesRepEmployeeNumber
-	JOIN orders
-		ON customers.customerNumber = orders.customerNumber
-	WHERE
-		employees.jobTitle = "Sales Rep"
-	GROUP BY
-		YEAR(orders.orderDate),
-		MONTH(orders.orderDate),
-		employees.employeeNumber
-)
--- The two worst sellers for month 
-SELECT 
-    year,
-    month,
-    seller,
-    ranking
-FROM sellers_data
-WHERE ranking <= 2
-ORDER BY
-	year,
-    month,
-    ranking DESC
-;
-
-```
-
-- ** The two profits best sellers of the last month
 ```sql
 WITH sellers_data AS (
 	WITH max_date AS (
